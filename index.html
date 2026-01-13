@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeVault Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #4f46e5;
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            color: #f8fafc;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+
+        .login-wrap { height: 80vh; display: flex; align-items: center; justify-content: center; }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
+
+        .category-group {
+            background: var(--glass);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .cat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 0.5rem;
+        }
+
+        /* DISEÑO DE CUENTA TIPO ACORDEÓN */
+        .account-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+        }
+
+        .account-header {
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .account-header:hover { background: rgba(255, 255, 255, 0.05); }
+
+        .account-details {
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid var(--glass-border);
+            display: none; /* Oculto por defecto */
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 4px;
+            transition: 0.2s;
+        }
+        .btn-icon:hover { color: white; }
+
+        input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 0.8rem 1rem;
+            border-radius: 0.75rem;
+            width: 100%;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.7rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-ghost { background: transparent; border: 1px solid var(--glass-border); color: #94a3b8; font-size: 12px; }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .update-banner {
+            background: #065f46;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin-top: 2rem;
+            display: none;
+            border: 1px solid #10b981;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="login-screen" class="login-wrap">
+        <div class="glass-card">
+            <h1><i class="bi bi-shield-lock-fill"></i> SafeVault</h1>
+            <input type="password" id="master-pass" placeholder="Contraseña Maestra">
+            <button class="btn btn-primary" style="width:100%" onclick="unlock()">Desbloquear</button>
+        </div>
+    </div>
+
+    <div id="dashboard" class="hidden">
+        <div class="header">
+            <h1>Mis Cuentas</h1>
+            <button class="btn btn-ghost" onclick="location.reload()"><i class="bi bi-box-arrow-right"></i> Salir</button>
+        </div>
+
+        <div class="grid" id="main-grid"></div>
+
+        <div id="update-alert" class="update-banner">
+            <p><i class="bi bi-cloud-upload"></i> Cambios detectados. Genera el código para actualizar GitHub.</p>
+            <button class="btn btn-primary" onclick="showNewCode()">Obtener Código</button>
+            <div id="code-output" class="hidden" style="margin-top:1rem; background:black; padding:1rem; border-radius:0.5rem; word-break:break-all; font-family:monospace; font-size:10px;"></div>
+        </div>
+    </div>
+</div>
+
+<div id="add-modal" class="modal">
+    <div class="glass-card">
+        <h3 id="modal-cat-name">Cuenta</h3>
+        <input type="hidden" id="target-cat">
+        <input type="hidden" id="edit-index" value="-1">
+        <input type="text" id="in-name" placeholder="Nombre (Ej: YouTube)">
+        <input type="text" id="in-user" placeholder="Usuario / Email">
+        <input type="text" id="in-pass" placeholder="Contraseña">
+        <button class="btn btn-primary" style="width:100%" onclick="saveAccount()">Guardar Datos</button>
+        <button class="btn btn-ghost" style="width:100%; margin-top:0.5rem;" onclick="closeModal()">Cancelar</button>
+    </div>
+</div>
+
+<script>
+    let encryptedData ="tu codigo"; 
+    let vault = { "Google": [], "GitHub": [], "Steam": [], "Otros": [] };
+    let masterKey = "";
+
+    function unlock() {
+        masterKey = document.getElementById('master-pass').value;
+        try {
+            if(encryptedData.startsWith("U2Fsd")) {
+                const bytes = CryptoJS.AES.decrypt(encryptedData, masterKey);
+                const decryptedText = bytes.toString(CryptoJS.enc.Utf8);
+                if(!decryptedText) throw new Error();
+                vault = JSON.parse(decryptedText);
+            }
+            render();
+        } catch(e) { alert("Clave maestra incorrecta"); }
+    }
+
+    function render() {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        const grid = document.getElementById('main-grid');
+        grid.innerHTML = "";
+
+        for(let cat in vault) {
+            const div = document.createElement('div');
+            div.className = 'category-group';
+            div.innerHTML = `
+                <div class="cat-header">
+                    <span><i class="bi bi-folder2-open"></i> ${cat}</span>
+                    <button class="btn btn-primary" style="padding: 4px 8px; font-size:11px;" onclick="openModal('${cat}')">+ Add</button>
+                </div>
+                <div id="items-${cat}"></div>
+            `;
+            grid.appendChild(div);
+
+            const itemsContainer = div.querySelector(`#items-${cat}`);
+            vault[cat].forEach((acc, i) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'account-item';
+                itemDiv.innerHTML = `
+                    <div class="account-header" onclick="toggleDetail(this)">
+                        <span>${acc.name}</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
+                    <div class="account-details">
+                        <div class="detail-row">
+                            <span><i class="bi bi-envelope"></i> ${acc.user}</span>
+                            <button class="btn-icon" onclick="copyText('${acc.user}')"><i class="bi bi-clipboard"></i></button>
+                        </div>
+                        <div class="detail-row">
+                            <span><i class="bi bi-key"></i> ••••••••</span>
+                            <button class="btn-icon" onclick="copyText('${acc.pass}')"><i class="bi bi-clipboard-pulse"></i></button>
+                        </div>
+                        <div style="margin-top:10px; display:flex; gap:10px;">
+                            <button class="btn btn-ghost" style="flex:1" onclick="editAccount('${cat}', ${i})"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-ghost" style="flex:1; color:#ef4444;" onclick="remove('${cat}', ${i})"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+                itemsContainer.appendChild(itemDiv);
+            });
+        }
+    }
+
+    function toggleDetail(el) {
+        const details = el.nextElementSibling;
+        const icon = el.querySelector('.bi-chevron-down');
+        const isVisible = details.style.display === 'block';
+        details.style.display = isVisible ? 'none' : 'block';
+        icon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+
+    function copyText(text) {
+        navigator.clipboard.writeText(text);
+        alert("¡Copiado!");
+    }
+
+    function openModal(cat, index = -1) {
+        document.getElementById('target-cat').value = cat;
+        document.getElementById('edit-index').value = index;
+        document.getElementById('modal-cat-name').innerText = index === -1 ? `Añadir a ${cat}` : "Editar Cuenta";
+        if(index === -1) {
+            document.getElementById('in-name').value = "";
+            document.getElementById('in-user').value = "";
+            document.getElementById('in-pass').value = "";
+        }
+        document.getElementById('add-modal').style.display = 'flex';
+    }
+
+    function saveAccount() {
+        const cat = document.getElementById('target-cat').value;
+        const index = parseInt(document.getElementById('edit-index').value);
+        const data = {
+            name: document.getElementById('in-name').value,
+            user: document.getElementById('in-user').value,
+            pass: document.getElementById('in-pass').value
+        };
+
+        if(index === -1) vault[cat].push(data);
+        else vault[cat][index] = data;
+
+        document.getElementById('update-alert').style.display = 'block';
+        closeModal();
+        render();
+    }
+
+    function editAccount(cat, i) {
+        const acc = vault[cat][i];
+        openModal(cat, i);
+        document.getElementById('in-name').value = acc.name;
+        document.getElementById('in-user').value = acc.user;
+        document.getElementById('in-pass').value = acc.pass;
+    }
+
+    function closeModal() { document.getElementById('add-modal').style.display = 'none'; }
+
+    function remove(cat, i) {
+        if(confirm("¿Eliminar?")) {
+            vault[cat].splice(i, 1);
+            document.getElementById('update-alert').style.display = 'block';
+            render();
+        }
+    }
+
+    function showNewCode() {
+        const encrypted = CryptoJS.AES.encrypt(JSON.stringify(vault), masterKey).toString();
+        const out = document.getElementById('code-output');
+        out.innerText = encrypted;
+        out.classList.remove('hidden');
+    }
+</script>
+</body>
+</html>
