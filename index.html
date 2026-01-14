@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Security-Policy"
 content="
 default-src 'self';
-script-src 'self';
+script-src 'self' https://unpkg.com;
 style-src 'self' https://cdn.jsdelivr.net;
 font-src https://cdn.jsdelivr.net;
 object-src 'none';
@@ -18,71 +18,63 @@ frame-ancestors 'none';
 <link rel="stylesheet" href="./style.css">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
-<title>SafeVault Pro</title>
+<title>SafeVault</title>
 </head>
 
 <body>
+<script src="https://unpkg.com/@otplib/preset-browser@^12.0.0/buffer.js"></script>
+<script src="https://unpkg.com/@otplib/preset-browser@^12.0.0/index.js"></script>
 <script src="./app.js" defer></script>
 
 <div class="container">
 
-  <!-- 🔐 LOGIN -->
   <div id="login-screen" class="login-wrap">
     <div class="glass-card">
       <h1><i class="bi bi-shield-lock-fill"></i> SafeVault</h1>
-      <input type="password" id="master-pass" placeholder="Contraseña Maestra">
+      
+      <div style="margin-bottom: 1rem;">
+        <label style="font-size: 0.8rem; color: var(--text-dim);">Contraseña Maestra</label>
+        <input type="password" id="master-pass" placeholder="••••••••">
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label style="font-size: 0.8rem; color: var(--text-dim);">Código de Seguridad (App Celular)</label>
+        <input type="text" id="otp-code" placeholder="000000" maxlength="6" 
+               style="text-align: center; letter-spacing: 5px; font-weight: bold;">
+      </div>
+
       <button id="unlock-btn" class="btn btn-primary" style="width:100%">
-        Desbloquear
+        Desbloquear Bóveda
       </button>
     </div>
   </div>
 
-  <!-- 📦 DASHBOARD -->
   <div id="dashboard" class="hidden">
-
-    <!-- HEADER -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
       <h1>Mis Cuentas</h1>
-
       <div style="display:flex;gap:10px">
         <button id="add-global-btn" class="btn btn-primary">
           <i class="bi bi-plus-lg"></i> Nuevo servicio
         </button>
-
         <button id="lock-btn" class="btn btn-ghost">
           <i class="bi bi-box-arrow-right"></i> Bloquear
         </button>
       </div>
     </div>
-
-    <!-- GRID DE SERVICIOS -->
     <div id="main-grid" class="grid"></div>
-
   </div>
 </div>
 
-<!-- ➕ MODAL (SERVICIO / CREDENCIALES) -->
 <div id="add-modal" class="modal">
   <div class="glass-card">
-
     <h3 id="modal-title">Cuenta</h3>
-
-    <!-- NUEVO: servicio -->
     <input id="in-service" placeholder="Servicio (GitHub, Steam...)">
-
     <input id="in-user" placeholder="Usuario">
     <input id="in-pass" placeholder="Contraseña">
-
-    <button id="save-btn" class="btn btn-primary" style="width:100%">
-      Guardar
-    </button>
-
-    <button id="cancel-btn" class="btn btn-ghost" style="width:100%">
-      Cancelar
-    </button>
+    <button id="save-btn" class="btn btn-primary" style="width:100%">Guardar</button>
+    <button id="cancel-btn" class="btn btn-ghost" style="width:100%">Cancelar</button>
   </div>
 </div>
-
 
 </body>
 </html>
