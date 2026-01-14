@@ -9,8 +9,10 @@ let currentMasterPass = "";
 let vault = { Google: [], GitHub: [], Steam: [], Otros: [] };
 let modalMode = null; 
 let editContext = { service: null, index: null };
+let inactivityTimer; // Nueva variable para el auto-bloqueo
 
 /* ================== DATA CIFRADA INICIAL ================== */
+// Mantén aquí tu objeto encryptedData original
 const encryptedData = {"salt":"G1xEAp1Qn8a+N1a963k/cw==","iv":"/nvYPMBrozPQ5d0a","data":"gUzqAYZ1dBexfBHe5v63Sqs+iUPJg5QRB4YDA+qePMLWoBf5Vzpq6wO37H84E7zXIf0So+LdFFrDbPerMsiW8gBEE+wD78dL0fAajNkOMkAsGEBGOFfHB6drQIEt698qp1NjxGHM+lwG9VNQOczQK2N3G9d2mdO7KPPMv8ZoNv4f8l6G1XmqW4PEU2I/Zs50Vo1FwfHhkhQzMX0i3H0LBRFkID3ftLexm/A/4kkByYg4FXuXXOwiPeZVVsLI3aK2VJMPaccHM5ccyC9Uo12DhUrgtzpJoXEmGtcfL7A1oyWG8+ZOldBmj+4kJAnzIUs3d7F+tgyjfc2r2TsemKjVQp0rjTPsTL6Dwx/JOZv4bLnxBLJGhYFJoF78HQhWb2LHOM85ctIBiKXDQvQKKv7NzbCJ8D3CI2HdgwxE8bhxW8xj+NWRZMiqHl9TRE5gTKbtnotjzJiplq2yXQYHDg3nnecpyEZPvfBPbguZoh/miwZinwqGEKpLpICqmXgDXtZM/huPt1ncPOaK8JXQBGucuQjZNDSnlk4t4F6TADpKQHW2cFsSN9KZtNKPEPgDjRjYCHh0SvzYXTTBM3c+ZQ7jo8EdBHhdDL6/QLnsTojwZQHG0tRQMnMFzg7vJL5dLdu/a5rb50Zh3GG8wWdAqSyRCA3/RZKXkT771/b5mHRV7vkfdY/KtzJb1rEQqOTDthKcwZwD5IgQSg4wFM9cVK6x4yYAf3cL5vq8zarzV82Q+4T1XUwLaGarxzy3YDIATxB5uRLO4DK/yvrn8sTqy5V9C8eXbp1oCds+XJwZJMBWNE39Yw/u5BcEyy7Bq5w/WrhzNDXa+rDXQtgqVGeI1OheYeScnvXMWGOeo1Z3zaYQusf9w9xbm4RjvvG5nZUhpLziAYXPTN1+7vvrG6SZ+Q2n/8p1xARK+Ew8pSurNKyZyMPdvLl7hvrUWmF5LEbcxjvH8LkICw2+9U5TNAjGmA=="};
 
 /* ================== DOM ================== */
@@ -65,11 +67,29 @@ function showExportArea(json) {
     `;
 }
 
-/* ================== RENDER (CORREGIDO) ================== */
+/* ================== SEGURIDAD: AUTO-BLOQUEO ================== */
+// Función para reiniciar el temporizador de inactividad
+function resetInactivityTimer() {
+    if (currentMasterPass) { // Solo si la app está desbloqueada
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+            alert("Sesión cerrada por inactividad");
+            handleLock();
+        }, 300000); // 5 minutos (300,000 ms)
+    }
+}
+
+// Escuchar actividad del usuario
+['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(name => {
+    document.addEventListener(name, resetInactivityTimer);
+});
+
+/* ================== RENDER ================== */
 function render() {
     loginScreen.classList.add("hidden");
     dashboard.classList.remove("hidden");
     mainGrid.innerHTML = "";
+    resetInactivityTimer(); // Reiniciar timer al renderizar
 
     for (const service in vault) {
         const group = document.createElement("div");
@@ -96,10 +116,8 @@ function render() {
             </div>
         `;
 
-        // Evento Acordeón
         group.querySelector(".service-info").onclick = () => group.classList.toggle("active");
 
-        // Evento Borrar Servicio
         group.querySelector(".btn-delete-service").onclick = (e) => {
             e.stopPropagation();
             window.deleteService(service);
@@ -122,7 +140,6 @@ function render() {
                 </div>
             `;
 
-            // Lógica de clics internos
             item.onclick = (e) => {
                 const btnEdit = e.target.closest(".btn-edit");
                 const btnDel = e.target.closest(".btn-delete");
@@ -140,6 +157,20 @@ function render() {
         });
         mainGrid.appendChild(group);
     }
+}
+
+/* ================== SEGURIDAD: MANEJO DE BLOQUEO ================== */
+function handleLock() {
+    // 1. Sobrescribir datos en memoria RAM (Zeroing)
+    vault = { Google: [], GitHub: [], Steam: [], Otros: [] };
+    currentMasterPass = "";
+    cryptoKey = null;
+    
+    // 2. Limpiar UI
+    mainGrid.innerHTML = "";
+    
+    // 3. Recargar la página para eliminar cualquier rastro
+    location.reload();
 }
 
 /* ================== FUNCIONES GLOBALES ================== */
@@ -201,7 +232,7 @@ document.getElementById("add-global-btn").onclick = () => {
     inService.value = ""; modal.style.display = "flex";
 };
 
-// Delegación de eventos para agregar cuenta y copiar
+// Delegación de eventos
 document.addEventListener("click", e => {
     const addBtn = e.target.closest(".add-account-btn");
     if (addBtn) {
@@ -223,5 +254,8 @@ document.addEventListener("click", e => {
 });
 
 document.getElementById("cancel-btn").onclick = closeModal;
-document.getElementById("lock-btn").onclick = () => location.reload();
+
+// Botón de bloqueo con limpieza de RAM
+document.getElementById("lock-btn").onclick = handleLock;
+
 function closeModal() { modal.style.display = "none"; }
