@@ -1,440 +1,88 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SafeVault Pro</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #6366f1;
-            --secondary: #4f46e5;
-            --bg: #0f172a;
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
-            color: #f8fafc;
-            margin: 0;
-            min-height: 100vh;
-        }
+<meta http-equiv="Content-Security-Policy"
+content="
+default-src 'self';
+script-src 'self';
+style-src 'self' https://cdn.jsdelivr.net;
+font-src https://cdn.jsdelivr.net;
+object-src 'none';
+base-uri 'none';
+frame-ancestors 'none';
+">
 
-        .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+<link rel="stylesheet" href="./style.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
-        .login-wrap { height: 80vh; display: flex; align-items: center; justify-content: center; }
-
-        .glass-card {
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 1.5rem;
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
-
-        .category-group {
-            background: var(--glass);
-            border-radius: 1.25rem;
-            padding: 1.5rem;
-            border: 1px solid var(--glass-border);
-        }
-
-        .cat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--glass-border);
-            padding-bottom: 0.5rem;
-        }
-
-        /* DISEÑO DE CUENTA TIPO ACORDEÓN */
-        .account-item {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 0.75rem;
-            margin-bottom: 0.75rem;
-            border: 1px solid var(--glass-border);
-            overflow: hidden;
-        }
-
-        .account-header {
-            padding: 12px 15px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .account-header:hover { background: rgba(255, 255, 255, 0.05); }
-
-        .account-details {
-            padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-top: 1px solid var(--glass-border);
-            display: none; /* Oculto por defecto */
-        }
-
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 13px;
-            color: #94a3b8;
-        }
-
-        .btn-icon {
-            background: none;
-            border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            padding: 4px;
-            transition: 0.2s;
-        }
-        .btn-icon:hover { color: white; }
-
-        input {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--glass-border);
-            color: white;
-            padding: 0.8rem 1rem;
-            border-radius: 0.75rem;
-            width: 100%;
-            margin-bottom: 1rem;
-            box-sizing: border-box;
-        }
-
-        .btn {
-            padding: 0.6rem 1.2rem;
-            border-radius: 0.7rem;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-ghost { background: transparent; border: 1px solid var(--glass-border); color: #94a3b8; font-size: 12px; }
-
-        .modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(4px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .update-banner {
-            background: #065f46;
-            padding: 1rem;
-            border-radius: 1rem;
-            margin-top: 2rem;
-            display: none;
-            border: 1px solid #10b981;
-        }
-
-        .hidden { display: none; }
-    </style>
+<title>SafeVault Pro</title>
 </head>
+
 <body>
+<script src="./app.js" defer></script>
 
 <div class="container">
-    <div id="login-screen" class="login-wrap">
-        <div class="glass-card">
-            <h1><i class="bi bi-shield-lock-fill"></i> SafeVault</h1>
-            <input type="password" id="master-pass" placeholder="Contraseña Maestra">
-            <button class="btn btn-primary" style="width:100%" onclick="unlock()">Desbloquear</button>
-        </div>
-    </div>
 
-    <div id="dashboard" class="hidden">
-        <div class="header">
-            <h1>Mis Cuentas</h1>
-            <button class="btn btn-ghost" onclick="location.reload()"><i class="bi bi-box-arrow-right"></i> Salir</button>
-        </div>
-
-        <div class="grid" id="main-grid"></div>
-
-        <div id="update-alert" class="update-banner">
-            <p><i class="bi bi-cloud-upload"></i> Cambios detectados. Genera el código para actualizar GitHub.</p>
-            <button class="btn btn-primary" onclick="showNewCode()">Obtener Código</button>
-            <div id="code-output" class="hidden" style="margin-top:1rem; background:black; padding:1rem; border-radius:0.5rem; word-break:break-all; font-family:monospace; font-size:10px;"></div>
-        </div>
-    </div>
-</div>
-
-<div id="add-modal" class="modal">
+  <!-- 🔐 LOGIN -->
+  <div id="login-screen" class="login-wrap">
     <div class="glass-card">
-        <h3 id="modal-cat-name">Cuenta</h3>
-        <input type="hidden" id="target-cat">
-        <input type="hidden" id="edit-index" value="-1">
-        <input type="text" id="in-name" placeholder="Nombre (Ej: YouTube)">
-        <input type="text" id="in-user" placeholder="Usuario / Email">
-        <input type="text" id="in-pass" placeholder="Contraseña">
-        <button class="btn btn-primary" style="width:100%" onclick="saveAccount()">Guardar Datos</button>
-        <button class="btn btn-ghost" style="width:100%; margin-top:0.5rem;" onclick="closeModal()">Cancelar</button>
+      <h1><i class="bi bi-shield-lock-fill"></i> SafeVault</h1>
+      <input type="password" id="master-pass" placeholder="Contraseña Maestra">
+      <button id="unlock-btn" class="btn btn-primary" style="width:100%">
+        Desbloquear
+      </button>
     </div>
+  </div>
+
+  <!-- 📦 DASHBOARD -->
+  <div id="dashboard" class="hidden">
+
+    <!-- HEADER -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
+      <h1>Mis Cuentas</h1>
+
+      <div style="display:flex;gap:10px">
+        <button id="add-global-btn" class="btn btn-primary">
+          <i class="bi bi-plus-lg"></i> Nuevo servicio
+        </button>
+
+        <button id="lock-btn" class="btn btn-ghost">
+          <i class="bi bi-box-arrow-right"></i> Bloquear
+        </button>
+      </div>
+    </div>
+
+    <!-- GRID DE SERVICIOS -->
+    <div id="main-grid" class="grid"></div>
+
+  </div>
 </div>
 
-<script>
-/* =========================
-   DATOS CIFRADOS (SEGUROS)
-========================= */
-let encryptedData = {"salt":"3QZwuSM+Q+VmTsEDiDKhqg==","iv":"TL/UiGGvbN1w9RZd","data":"LOplslyLetMTfaFJY/adBWVhXmg6gCJN2/7XwXhxpbQBTp3j62Fxv7yxcS8mZfkLjLBAPRVQf9yDX9Vrs5sGC92CKk0+aQjoBePklHjSUiAzHOI9OF184DzZFf8mrcMiUBTmzh5xnopLa0ndbIpfGhqeu+nnhgDoXN+omYV5jrtL1gGlMVXqgXewJkCASNmbfeoSx7K3bMTbeCGKQSkz3T2VouUwTMl6QtVn0KzvHMx0S+hHNnRO2U+ch/aSfG03Syi761YEXUT4weD1xu/DAGq3cyjhRtI9L36XKUuV0OYPELIyFVbtL7sIBOnqs0pspjuXQCLg5u8IxqvgLzdiWCOkieZ/O1Fe+SUDBUG3/T+sO7GENIW4WpS33ynUcBPmhNbA/yPpSMWtZJ1T6+2d9cLNpSxn210Dv37MvmdVoKlWupVT0CWiJGIH3K015BGFB/jdBb/J1VMiiAgMNDRtXEhUWcCDvLMk/lIrARcKrwCsxlrUbwE/2Q5+WcRBCj10Zp08LFtG+JoP63/F7SYMq+5jCCPKyu2FiWZjyLbgjDIdapFIXznA6wiUQk2mNpwWaM048JwOGnyQ3E3fafiDe4GQs+QANmWmHRP2KwGAwfO78jYjcEuQTYMIj5aj34fGAq6UGwvfj4/Aj5yL8E1bS1nqAIBmIFmK7wvx5vR7BC3/poN8fBjNZ4CdTfupsX+/8qKH2Q1gWOcs9B9YVs9WWeNWekN1HQp2F1AJ1uaBAqd48yborWTcwLvGYpH2I4jiC4ZpeiDVHONnbU+7rPEQVs4GCNpjF1gZFcH+02F/5fX2aBYXiONQCbWvSHwpEtTpPZHxy+iodCcfjR72jxeD2nrcnk3ha6DjRPQfYNPuKHvGw8/redmydQAzLHYcoPYcvfulHHbGBNkV4+tJap6uRMaV2lu+J1BqQuMzP/q11xWddFPRhdY0Los+734cvRakin6K3EXNzTctPr0tDw=="};
+<!-- ➕ MODAL (SERVICIO / CREDENCIALES) -->
+<div id="add-modal" class="modal">
+  <div class="glass-card">
 
-/* =========================
-   ESTADO
-========================= */
-let vault = { "Google": [], "GitHub": [], "Steam": [], "Otros": [] };
-let cryptoKey = null;
+    <h3 id="modal-title">Cuenta</h3>
 
-/* =========================
-   UTILIDADES
-========================= */
-const enc = new TextEncoder();
-const dec = new TextDecoder();
+    <!-- NUEVO: servicio -->
+    <input id="in-service" placeholder="Servicio (GitHub, Steam...)">
 
-function b64ToBuf(b64) {
-  return Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-}
-function bufToB64(buf) {
-  return btoa(String.fromCharCode(...buf));
-}
+    <input id="in-user" placeholder="Usuario">
+    <input id="in-pass" placeholder="Contraseña">
 
-/* =========================
-   CRIPTOGRAFÍA
-========================= */
-async function deriveKey(password, salt) {
-  const baseKey = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(password),
-    "PBKDF2",
-    false,
-    ["deriveKey"]
-  );
+    <button id="save-btn" class="btn btn-primary" style="width:100%">
+      Guardar
+    </button>
 
-  return crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt,
-      iterations: 310000,
-      hash: "SHA-256"
-    },
-    baseKey,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt", "decrypt"]
-  );
-}
+    <button id="cancel-btn" class="btn btn-ghost" style="width:100%">
+      Cancelar
+    </button>
+  </div>
+</div>
 
 
-function saveAccount() {
-  const cat = document.getElementById("target-cat").value;
-  const index = parseInt(document.getElementById("edit-index").value);
-
-  const name = document.getElementById("in-name").value.trim();
-  const user = document.getElementById("in-user").value.trim();
-  const pass = document.getElementById("in-pass").value.trim();
-
-  if (!name || !user || !pass) {
-    alert("Completa todos los campos");
-    return;
-  }
-
-  const data = { name, user, pass };
-
-  if (index >= 0) {
-    vault[cat][index] = data;
-  } else {
-    vault[cat].push(data);
-  }
-
-  document.getElementById("update-alert").style.display = "block";
-  closeModal();
-  render();
-}
-
-
-
-
-function toggleDetail(header) {
-  const details = header.nextElementSibling;
-  details.style.display = details.style.display === "block" ? "none" : "block";
-}
-
-function copyText(text) {
-  navigator.clipboard.writeText(text);
-}
-
-function editAccount(cat, index) {
-  const acc = vault[cat][index];
-  openModal(cat);
-  document.getElementById("edit-index").value = index;
-  document.getElementById("in-name").value = acc.name;
-  document.getElementById("in-user").value = acc.user;
-  document.getElementById("in-pass").value = acc.pass;
-}
-
-function remove(cat, index) {
-  if (!confirm("¿Eliminar esta cuenta?")) return;
-  vault[cat].splice(index, 1);
-  document.getElementById("update-alert").style.display = "block";
-  render();
-}
-
-
-
-
-
-function openModal(cat) {
-  document.getElementById("modal-cat-name").innerText = cat;
-  document.getElementById("target-cat").value = cat;
-  document.getElementById("edit-index").value = -1;
-
-  document.getElementById("in-name").value = "";
-  document.getElementById("in-user").value = "";
-  document.getElementById("in-pass").value = "";
-
-  document.getElementById("add-modal").style.display = "flex";
-}
-
-function closeModal() {
-  document.getElementById("add-modal").style.display = "none";
-}
-
-/* =========================
-   LOGIN
-========================= */
-async function unlock() {
-  const pass = document.getElementById("master-pass").value;
-  if (!pass) {
-    alert("Ingresa una contraseña maestra");
-    return;
-  }
-
-  // 🟢 PRIMER USO (no hay datos aún)
-  if (encryptedData === null) {
-    cryptoKey = await deriveKey(pass, crypto.getRandomValues(new Uint8Array(16)));
-    render();
-    document.getElementById("update-alert").style.display = "block";
-    alert("Vault creado. Agrega tus cuentas y genera el código.");
-    return;
-  }
-
-  // 🔐 USO NORMAL
-  try {
-    const salt = b64ToBuf(encryptedData.salt);
-    const iv = b64ToBuf(encryptedData.iv);
-
-    cryptoKey = await deriveKey(pass, salt);
-
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      cryptoKey,
-      b64ToBuf(encryptedData.data)
-    );
-
-    vault = JSON.parse(dec.decode(decrypted));
-    render();
-  } catch {
-    cryptoKey = null;
-    alert("Clave maestra incorrecta");
-  }
-}
-
-
-/* =========================
-   RENDER (TU UI ORIGINAL)
-========================= */
-function render() {
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('dashboard').classList.remove('hidden');
-  const grid = document.getElementById('main-grid');
-  grid.innerHTML = "";
-
-  for (let cat in vault) {
-    const div = document.createElement('div');
-    div.className = 'category-group';
-    div.innerHTML = `
-      <div class="cat-header">
-        <span><i class="bi bi-folder2-open"></i> ${cat}</span>
-        <button class="btn btn-primary" style="padding:4px 8px;font-size:11px;" onclick="openModal('${cat}')">+ Add</button>
-      </div>
-      <div id="items-${cat}"></div>
-    `;
-    grid.appendChild(div);
-
-    const items = div.querySelector(`#items-${cat}`);
-    vault[cat].forEach((acc, i) => {
-      const item = document.createElement('div');
-      item.className = 'account-item';
-      item.innerHTML = `
-        <div class="account-header" onclick="toggleDetail(this)">
-          <span>${acc.name}</span>
-          <i class="bi bi-chevron-down"></i>
-        </div>
-        <div class="account-details">
-          <div class="detail-row">
-            <span>${acc.user}</span>
-            <button class="btn-icon" onclick="copyText('${acc.user}')"><i class="bi bi-clipboard"></i></button>
-          </div>
-          <div class="detail-row">
-            <span>••••••••</span>
-            <button class="btn-icon" onclick="copyText('${acc.pass}')"><i class="bi bi-clipboard-pulse"></i></button>
-          </div>
-          <div style="margin-top:10px;display:flex;gap:10px;">
-            <button class="btn btn-ghost" onclick="editAccount('${cat}',${i})"><i class="bi bi-pencil"></i></button>
-            <button class="btn btn-ghost" style="color:#ef4444;" onclick="remove('${cat}',${i})"><i class="bi bi-trash"></i></button>
-          </div>
-        </div>
-      `;
-      items.appendChild(item);
-    });
-  }
-}
-
-/* =========================
-   EXPORTAR NUEVO CÓDIGO
-========================= */
-async function showNewCode() {
-  const pass = document.getElementById("master-pass").value;
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await deriveKey(pass, salt);
-
-  const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    key,
-    enc.encode(JSON.stringify(vault))
-  );
-
-  const output = {
-    salt: bufToB64(salt),
-    iv: bufToB64(iv),
-    data: bufToB64(new Uint8Array(encrypted))
-  };
-
-  const out = document.getElementById("code-output");
-  out.innerText = JSON.stringify(output);
-  out.classList.remove("hidden");
-}
-</script>
 </body>
 </html>
