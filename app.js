@@ -4,19 +4,25 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 
 /* ================== ESTADO ================== */
-let cryptoKey = null;
 let currentMasterPass = ""; 
 let vault = { Google: [], GitHub: [], Steam: [], Otros: [] };
 let modalMode = null; 
 let editContext = { service: null, index: null };
-let inactivityTimer; // Nueva variable para el auto-bloqueo
+let inactivityTimer;
+
+/** * OFUSCACIÓN DEL SECRETO 2FA
+ * El secreto real se extrae dinámicamente para no ser captado por bots simples.
+ * Reemplaza 'MISECRETOBRUTAL1' por tu clave de 16 caracteres para Google Authenticator.
+ */
+const _p = "key-PerroCarroTontol-auth"; 
+const getS = () => _p.split("-")[1];
 
 /* ================== DATA CIFRADA INICIAL ================== */
-// Mantén aquí tu objeto encryptedData original
 const encryptedData = {"salt":"G1xEAp1Qn8a+N1a963k/cw==","iv":"/nvYPMBrozPQ5d0a","data":"gUzqAYZ1dBexfBHe5v63Sqs+iUPJg5QRB4YDA+qePMLWoBf5Vzpq6wO37H84E7zXIf0So+LdFFrDbPerMsiW8gBEE+wD78dL0fAajNkOMkAsGEBGOFfHB6drQIEt698qp1NjxGHM+lwG9VNQOczQK2N3G9d2mdO7KPPMv8ZoNv4f8l6G1XmqW4PEU2I/Zs50Vo1FwfHhkhQzMX0i3H0LBRFkID3ftLexm/A/4kkByYg4FXuXXOwiPeZVVsLI3aK2VJMPaccHM5ccyC9Uo12DhUrgtzpJoXEmGtcfL7A1oyWG8+ZOldBmj+4kJAnzIUs3d7F+tgyjfc2r2TsemKjVQp0rjTPsTL6Dwx/JOZv4bLnxBLJGhYFJoF78HQhWb2LHOM85ctIBiKXDQvQKKv7NzbCJ8D3CI2HdgwxE8bhxW8xj+NWRZMiqHl9TRE5gTKbtnotjzJiplq2yXQYHDg3nnecpyEZPvfBPbguZoh/miwZinwqGEKpLpICqmXgDXtZM/huPt1ncPOaK8JXQBGucuQjZNDSnlk4t4F6TADpKQHW2cFsSN9KZtNKPEPgDjRjYCHh0SvzYXTTBM3c+ZQ7jo8EdBHhdDL6/QLnsTojwZQHG0tRQMnMFzg7vJL5dLdu/a5rb50Zh3GG8wWdAqSyRCA3/RZKXkT771/b5mHRV7vkfdY/KtzJb1rEQqOTDthKcwZwD5IgQSg4wFM9cVK6x4yYAf3cL5vq8zarzV82Q+4T1XUwLaGarxzy3YDIATxB5uRLO4DK/yvrn8sTqy5V9C8eXbp1oCds+XJwZJMBWNE39Yw/u5BcEyy7Bq5w/WrhzNDXa+rDXQtgqVGeI1OheYeScnvXMWGOeo1Z3zaYQusf9w9xbm4RjvvG5nZUhpLziAYXPTN1+7vvrG6SZ+Q2n/8p1xARK+Ew8pSurNKyZyMPdvLl7hvrUWmF5LEbcxjvH8LkICw2+9U5TNAjGmA=="};
 
 /* ================== DOM ================== */
 const masterPassInput = document.getElementById("master-pass");
+const otpInput = document.getElementById("otp-code"); 
 const loginScreen = document.getElementById("login-screen");
 const dashboard = document.getElementById("dashboard");
 const mainGrid = document.getElementById("main-grid");
@@ -32,7 +38,17 @@ const b64 = (b) => Uint8Array.from(atob(b), c => c.charCodeAt(0));
 const toB64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
 const escapeHTML = (s) => s.replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
 
-/* ================== CRIPTO ================== */
+/* ================== SEGURIDAD: 2FA & CRIPTO ================== */
+function check2FA(token) {
+    try {
+        // Usa la librería otplib cargada globalmente desde el CDN
+        return otplib.authenticator.check(token, getS());
+    } catch (e) {
+        console.error("Error validando 2FA:", e);
+        return false;
+    }
+}
+
 async function deriveKey(pass, salt, usage = ["decrypt"]) {
     const base = await crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]);
     return crypto.subtle.deriveKey(
@@ -67,19 +83,17 @@ function showExportArea(json) {
     `;
 }
 
-/* ================== SEGURIDAD: AUTO-BLOQUEO ================== */
-// Función para reiniciar el temporizador de inactividad
+/* ================== SEGURIDAD: INACTIVIDAD ================== */
 function resetInactivityTimer() {
-    if (currentMasterPass) { // Solo si la app está desbloqueada
+    if (currentMasterPass) {
         clearTimeout(inactivityTimer);
         inactivityTimer = setTimeout(() => {
             alert("Sesión cerrada por inactividad");
             handleLock();
-        }, 300000); // 5 minutos (300,000 ms)
+        }, 300000); 
     }
 }
 
-// Escuchar actividad del usuario
 ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(name => {
     document.addEventListener(name, resetInactivityTimer);
 });
@@ -89,12 +103,11 @@ function render() {
     loginScreen.classList.add("hidden");
     dashboard.classList.remove("hidden");
     mainGrid.innerHTML = "";
-    resetInactivityTimer(); // Reiniciar timer al renderizar
+    resetInactivityTimer();
 
     for (const service in vault) {
         const group = document.createElement("div");
         group.className = "category-group";
-        
         group.innerHTML = `
             <div class="category-header">
                 <div class="service-info" style="display:flex; align-items:center; gap:10px; flex-grow:1;">
@@ -102,12 +115,8 @@ function render() {
                     <h3 style="margin:0; border:none; padding:0;">${escapeHTML(service)}</h3>
                 </div>
                 <div class="action-buttons">
-                    <button class="btn-delete-service" data-service="${service}" title="Borrar Servicio">
-                        <i class="bi bi-folder-x"></i>
-                    </button>
-                    <button class="btn-add-sm add-account-btn" data-service="${service}">
-                        <i class="bi bi-plus-lg"></i>
-                    </button>
+                    <button class="btn-delete-service" data-service="${service}"><i class="bi bi-folder-x"></i></button>
+                    <button class="btn-add-sm add-account-btn" data-service="${service}"><i class="bi bi-plus-lg"></i></button>
                 </div>
             </div>
             <div class="category-content">
@@ -117,7 +126,6 @@ function render() {
         `;
 
         group.querySelector(".service-info").onclick = () => group.classList.toggle("active");
-
         group.querySelector(".btn-delete-service").onclick = (e) => {
             e.stopPropagation();
             window.deleteService(service);
@@ -141,15 +149,11 @@ function render() {
             `;
 
             item.onclick = (e) => {
-                const btnEdit = e.target.closest(".btn-edit");
-                const btnDel = e.target.closest(".btn-delete");
-                const btnCopy = e.target.closest(".copy-btn");
-
-                if (btnEdit) {
-                    window.openEdit(btnEdit.dataset.service, btnEdit.dataset.idx);
-                } else if (btnDel) {
-                    window.deleteAccount(btnDel.dataset.service, btnDel.dataset.idx);
-                } else if (!btnCopy) {
+                if (e.target.closest(".btn-edit")) {
+                    window.openEdit(service, idx);
+                } else if (e.target.closest(".btn-delete")) {
+                    window.deleteAccount(service, idx);
+                } else if (!e.target.closest(".copy-btn")) {
                     item.querySelector(".account-body").classList.toggle("hidden");
                 }
             };
@@ -159,17 +163,12 @@ function render() {
     }
 }
 
-/* ================== SEGURIDAD: MANEJO DE BLOQUEO ================== */
+/* ================== SEGURIDAD: BLOQUEO ================== */
 function handleLock() {
-    // 1. Sobrescribir datos en memoria RAM (Zeroing)
     vault = { Google: [], GitHub: [], Steam: [], Otros: [] };
     currentMasterPass = "";
-    cryptoKey = null;
-    
-    // 2. Limpiar UI
-    mainGrid.innerHTML = "";
-    
-    // 3. Recargar la página para eliminar cualquier rastro
+    masterPassInput.value = "";
+    if(otpInput) otpInput.value = "";
     location.reload();
 }
 
@@ -202,13 +201,30 @@ window.deleteService = (service) => {
 /* ================== EVENTOS PRINCIPALES ================== */
 document.getElementById("unlock-btn").onclick = async () => {
     const pass = masterPassInput.value;
+    const otp = otpInput ? otpInput.value : "";
+
+    if (!otp || otp.length < 6) {
+        alert("Introduce el código 2FA de 6 dígitos");
+        return;
+    }
+
     try {
+        // 1. Validar 2FA
+        if (!check2FA(otp)) {
+            alert("Código 2FA incorrecto o expirado");
+            return;
+        }
+
+        // 2. Intentar descifrar
         const key = await deriveKey(pass, b64(encryptedData.salt));
         const data = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(encryptedData.iv) }, key, b64(encryptedData.data));
+        
         vault = JSON.parse(dec.decode(data));
         currentMasterPass = pass;
         render();
-    } catch { alert("Contraseña incorrecta"); }
+    } catch (e) {
+        alert("Contraseña maestra incorrecta");
+    }
 };
 
 saveBtn.onclick = () => {
@@ -232,7 +248,6 @@ document.getElementById("add-global-btn").onclick = () => {
     inService.value = ""; modal.style.display = "flex";
 };
 
-// Delegación de eventos
 document.addEventListener("click", e => {
     const addBtn = e.target.closest(".add-account-btn");
     if (addBtn) {
@@ -242,7 +257,6 @@ document.addEventListener("click", e => {
         inService.style.display = "none"; inUser.style.display = "block"; inPass.style.display = "block";
         inUser.value = ""; inPass.value = ""; modal.style.display = "flex";
     }
-    
     const copyBtn = e.target.closest("[data-copy]");
     if (copyBtn) {
         navigator.clipboard.writeText(copyBtn.dataset.copy).then(() => {
@@ -254,8 +268,5 @@ document.addEventListener("click", e => {
 });
 
 document.getElementById("cancel-btn").onclick = closeModal;
-
-// Botón de bloqueo con limpieza de RAM
 document.getElementById("lock-btn").onclick = handleLock;
-
 function closeModal() { modal.style.display = "none"; }
