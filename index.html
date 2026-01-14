@@ -194,136 +194,247 @@
 </div>
 
 <script>
-    let encryptedData ="U2FsdGVkX19b5xPX0E1eZfPGXb+FWgTqvcP0z8i+tEd74KM0epfV8nSJcS1QMMZxnQ/5ZHF0ErKfnqd/BqKM71sYSO6qS9gqQoi3QFUJiHlS8AUOIeNIBpL1yq2YrJnTgosEC+IgDod3LcJOP5gVRFKalVPqo4KMDlJl87UVLbnarHyyDCvNiZg40qn3Nj8g+QVXWGCvny9oElE2gjYMhUdPDDkKFNRYOOdF17nHPvLQ+PKEYKrOTGmEnpiqTJO9ctURGcgZq2jp8EDwgyFky4+3wOO0UKWe5ZpRYrH0H0o1J4K5ZXmFq5PqondQGN2c9FdYRkkjzrQAmRjefpyLUC3b3eUH4I/q10v4dCHtmyS8e2jmLr7V4JgPCexGxWEzAGg8ZP2yTXlQAV1peQSW7Nh4ZBOhIS8xDB0qWlvrxHNAIdZ/Ju3MIxmJ6I/o8MyfB3X3rtV5IzTQB9EKWztkRJ5xT2vrsOX5WsvcvRBiBb6b+faHMZJ0CkK6cxeDLmx8bSLiCiU26gX6ZZT8iJZJclblXjtR12glgAd9OgtnkBvfq2KKZKdU8VDelGxobLAa07T4r0TPHLrToj7r8HP1OuJ4Devsj5TbS3DAkYokjaxTfjE3TTt2UWgx+xjs1D73i5ZAHyH6NcN4kodE33UhzWXF7rySdtlftjcIe01ROOwYMg0p7cWUF/leCImFrpfsBhnzskszco3GY8+Q4F/+GRNXHmuPcajvrMbYi9lfy0mwbZ3w7S7IPzr5GhraA7zpplcSoO4fz7pt64U8q/Y0Sgoij9MY4Yp0bnep26HFOzDdCODV2FZ29kDl7RVuENUdsoNBJhT6Z8saJ1drQM4wWDIM1nIoB3wotgvu+JEVeB45LaKmD6kgVcwCZadNZVaTFRMoyYsEsZbHr2TdsDMKV8UNCVBgYMxzbtQ130PhmttfS+3COMdzK3DrW6mHl6qACMcknOtojC0+xNRoVlyE4Q=="; 
-    let vault = { "Google": [], "GitHub": [], "Steam": [], "Otros": [] };
-    let masterKey = "";
+/* =========================
+   DATOS CIFRADOS (SEGUROS)
+========================= */
+let encryptedData = {"salt":"3QZwuSM+Q+VmTsEDiDKhqg==","iv":"TL/UiGGvbN1w9RZd","data":"LOplslyLetMTfaFJY/adBWVhXmg6gCJN2/7XwXhxpbQBTp3j62Fxv7yxcS8mZfkLjLBAPRVQf9yDX9Vrs5sGC92CKk0+aQjoBePklHjSUiAzHOI9OF184DzZFf8mrcMiUBTmzh5xnopLa0ndbIpfGhqeu+nnhgDoXN+omYV5jrtL1gGlMVXqgXewJkCASNmbfeoSx7K3bMTbeCGKQSkz3T2VouUwTMl6QtVn0KzvHMx0S+hHNnRO2U+ch/aSfG03Syi761YEXUT4weD1xu/DAGq3cyjhRtI9L36XKUuV0OYPELIyFVbtL7sIBOnqs0pspjuXQCLg5u8IxqvgLzdiWCOkieZ/O1Fe+SUDBUG3/T+sO7GENIW4WpS33ynUcBPmhNbA/yPpSMWtZJ1T6+2d9cLNpSxn210Dv37MvmdVoKlWupVT0CWiJGIH3K015BGFB/jdBb/J1VMiiAgMNDRtXEhUWcCDvLMk/lIrARcKrwCsxlrUbwE/2Q5+WcRBCj10Zp08LFtG+JoP63/F7SYMq+5jCCPKyu2FiWZjyLbgjDIdapFIXznA6wiUQk2mNpwWaM048JwOGnyQ3E3fafiDe4GQs+QANmWmHRP2KwGAwfO78jYjcEuQTYMIj5aj34fGAq6UGwvfj4/Aj5yL8E1bS1nqAIBmIFmK7wvx5vR7BC3/poN8fBjNZ4CdTfupsX+/8qKH2Q1gWOcs9B9YVs9WWeNWekN1HQp2F1AJ1uaBAqd48yborWTcwLvGYpH2I4jiC4ZpeiDVHONnbU+7rPEQVs4GCNpjF1gZFcH+02F/5fX2aBYXiONQCbWvSHwpEtTpPZHxy+iodCcfjR72jxeD2nrcnk3ha6DjRPQfYNPuKHvGw8/redmydQAzLHYcoPYcvfulHHbGBNkV4+tJap6uRMaV2lu+J1BqQuMzP/q11xWddFPRhdY0Los+734cvRakin6K3EXNzTctPr0tDw=="};
 
-    function unlock() {
-        masterKey = document.getElementById('master-pass').value;
-        try {
-            if(encryptedData.startsWith("U2Fsd")) {
-                const bytes = CryptoJS.AES.decrypt(encryptedData, masterKey);
-                const decryptedText = bytes.toString(CryptoJS.enc.Utf8);
-                if(!decryptedText) throw new Error();
-                vault = JSON.parse(decryptedText);
-            }
-            render();
-        } catch(e) { alert("Clave maestra incorrecta"); }
-    }
+/* =========================
+   ESTADO
+========================= */
+let vault = { "Google": [], "GitHub": [], "Steam": [], "Otros": [] };
+let cryptoKey = null;
 
-    function render() {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
-        const grid = document.getElementById('main-grid');
-        grid.innerHTML = "";
+/* =========================
+   UTILIDADES
+========================= */
+const enc = new TextEncoder();
+const dec = new TextDecoder();
 
-        for(let cat in vault) {
-            const div = document.createElement('div');
-            div.className = 'category-group';
-            div.innerHTML = `
-                <div class="cat-header">
-                    <span><i class="bi bi-folder2-open"></i> ${cat}</span>
-                    <button class="btn btn-primary" style="padding: 4px 8px; font-size:11px;" onclick="openModal('${cat}')">+ Add</button>
-                </div>
-                <div id="items-${cat}"></div>
-            `;
-            grid.appendChild(div);
+function b64ToBuf(b64) {
+  return Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+}
+function bufToB64(buf) {
+  return btoa(String.fromCharCode(...buf));
+}
 
-            const itemsContainer = div.querySelector(`#items-${cat}`);
-            vault[cat].forEach((acc, i) => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'account-item';
-                itemDiv.innerHTML = `
-                    <div class="account-header" onclick="toggleDetail(this)">
-                        <span>${acc.name}</span>
-                        <i class="bi bi-chevron-down"></i>
-                    </div>
-                    <div class="account-details">
-                        <div class="detail-row">
-                            <span><i class="bi bi-envelope"></i> ${acc.user}</span>
-                            <button class="btn-icon" onclick="copyText('${acc.user}')"><i class="bi bi-clipboard"></i></button>
-                        </div>
-                        <div class="detail-row">
-                            <span><i class="bi bi-key"></i> ••••••••</span>
-                            <button class="btn-icon" onclick="copyText('${acc.pass}')"><i class="bi bi-clipboard-pulse"></i></button>
-                        </div>
-                        <div style="margin-top:10px; display:flex; gap:10px;">
-                            <button class="btn btn-ghost" style="flex:1" onclick="editAccount('${cat}', ${i})"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-ghost" style="flex:1; color:#ef4444;" onclick="remove('${cat}', ${i})"><i class="bi bi-trash"></i></button>
-                        </div>
-                    </div>
-                `;
-                itemsContainer.appendChild(itemDiv);
-            });
-        }
-    }
+/* =========================
+   CRIPTOGRAFÍA
+========================= */
+async function deriveKey(password, salt) {
+  const baseKey = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
 
-    function toggleDetail(el) {
-        const details = el.nextElementSibling;
-        const icon = el.querySelector('.bi-chevron-down');
-        const isVisible = details.style.display === 'block';
-        details.style.display = isVisible ? 'none' : 'block';
-        icon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
-    }
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations: 310000,
+      hash: "SHA-256"
+    },
+    baseKey,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
 
-    function copyText(text) {
-        navigator.clipboard.writeText(text);
-        alert("¡Copiado!");
-    }
 
-    function openModal(cat, index = -1) {
-        document.getElementById('target-cat').value = cat;
-        document.getElementById('edit-index').value = index;
-        document.getElementById('modal-cat-name').innerText = index === -1 ? `Añadir a ${cat}` : "Editar Cuenta";
-        if(index === -1) {
-            document.getElementById('in-name').value = "";
-            document.getElementById('in-user').value = "";
-            document.getElementById('in-pass').value = "";
-        }
-        document.getElementById('add-modal').style.display = 'flex';
-    }
+function saveAccount() {
+  const cat = document.getElementById("target-cat").value;
+  const index = parseInt(document.getElementById("edit-index").value);
 
-    function saveAccount() {
-        const cat = document.getElementById('target-cat').value;
-        const index = parseInt(document.getElementById('edit-index').value);
-        const data = {
-            name: document.getElementById('in-name').value,
-            user: document.getElementById('in-user').value,
-            pass: document.getElementById('in-pass').value
-        };
+  const name = document.getElementById("in-name").value.trim();
+  const user = document.getElementById("in-user").value.trim();
+  const pass = document.getElementById("in-pass").value.trim();
 
-        if(index === -1) vault[cat].push(data);
-        else vault[cat][index] = data;
+  if (!name || !user || !pass) {
+    alert("Completa todos los campos");
+    return;
+  }
 
-        document.getElementById('update-alert').style.display = 'block';
-        closeModal();
-        render();
-    }
+  const data = { name, user, pass };
 
-    function editAccount(cat, i) {
-        const acc = vault[cat][i];
-        openModal(cat, i);
-        document.getElementById('in-name').value = acc.name;
-        document.getElementById('in-user').value = acc.user;
-        document.getElementById('in-pass').value = acc.pass;
-    }
+  if (index >= 0) {
+    vault[cat][index] = data;
+  } else {
+    vault[cat].push(data);
+  }
 
-    function closeModal() { document.getElementById('add-modal').style.display = 'none'; }
+  document.getElementById("update-alert").style.display = "block";
+  closeModal();
+  render();
+}
 
-    function remove(cat, i) {
-        if(confirm("¿Eliminar?")) {
-            vault[cat].splice(i, 1);
-            document.getElementById('update-alert').style.display = 'block';
-            render();
-        }
-    }
 
-    function showNewCode() {
-        const encrypted = CryptoJS.AES.encrypt(JSON.stringify(vault), masterKey).toString();
-        const out = document.getElementById('code-output');
-        out.innerText = encrypted;
-        out.classList.remove('hidden');
-    }
+
+
+function toggleDetail(header) {
+  const details = header.nextElementSibling;
+  details.style.display = details.style.display === "block" ? "none" : "block";
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text);
+}
+
+function editAccount(cat, index) {
+  const acc = vault[cat][index];
+  openModal(cat);
+  document.getElementById("edit-index").value = index;
+  document.getElementById("in-name").value = acc.name;
+  document.getElementById("in-user").value = acc.user;
+  document.getElementById("in-pass").value = acc.pass;
+}
+
+function remove(cat, index) {
+  if (!confirm("¿Eliminar esta cuenta?")) return;
+  vault[cat].splice(index, 1);
+  document.getElementById("update-alert").style.display = "block";
+  render();
+}
+
+
+
+
+
+function openModal(cat) {
+  document.getElementById("modal-cat-name").innerText = cat;
+  document.getElementById("target-cat").value = cat;
+  document.getElementById("edit-index").value = -1;
+
+  document.getElementById("in-name").value = "";
+  document.getElementById("in-user").value = "";
+  document.getElementById("in-pass").value = "";
+
+  document.getElementById("add-modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("add-modal").style.display = "none";
+}
+
+/* =========================
+   LOGIN
+========================= */
+async function unlock() {
+  const pass = document.getElementById("master-pass").value;
+  if (!pass) {
+    alert("Ingresa una contraseña maestra");
+    return;
+  }
+
+  // 🟢 PRIMER USO (no hay datos aún)
+  if (encryptedData === null) {
+    cryptoKey = await deriveKey(pass, crypto.getRandomValues(new Uint8Array(16)));
+    render();
+    document.getElementById("update-alert").style.display = "block";
+    alert("Vault creado. Agrega tus cuentas y genera el código.");
+    return;
+  }
+
+  // 🔐 USO NORMAL
+  try {
+    const salt = b64ToBuf(encryptedData.salt);
+    const iv = b64ToBuf(encryptedData.iv);
+
+    cryptoKey = await deriveKey(pass, salt);
+
+    const decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      cryptoKey,
+      b64ToBuf(encryptedData.data)
+    );
+
+    vault = JSON.parse(dec.decode(decrypted));
+    render();
+  } catch {
+    cryptoKey = null;
+    alert("Clave maestra incorrecta");
+  }
+}
+
+
+/* =========================
+   RENDER (TU UI ORIGINAL)
+========================= */
+function render() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  const grid = document.getElementById('main-grid');
+  grid.innerHTML = "";
+
+  for (let cat in vault) {
+    const div = document.createElement('div');
+    div.className = 'category-group';
+    div.innerHTML = `
+      <div class="cat-header">
+        <span><i class="bi bi-folder2-open"></i> ${cat}</span>
+        <button class="btn btn-primary" style="padding:4px 8px;font-size:11px;" onclick="openModal('${cat}')">+ Add</button>
+      </div>
+      <div id="items-${cat}"></div>
+    `;
+    grid.appendChild(div);
+
+    const items = div.querySelector(`#items-${cat}`);
+    vault[cat].forEach((acc, i) => {
+      const item = document.createElement('div');
+      item.className = 'account-item';
+      item.innerHTML = `
+        <div class="account-header" onclick="toggleDetail(this)">
+          <span>${acc.name}</span>
+          <i class="bi bi-chevron-down"></i>
+        </div>
+        <div class="account-details">
+          <div class="detail-row">
+            <span>${acc.user}</span>
+            <button class="btn-icon" onclick="copyText('${acc.user}')"><i class="bi bi-clipboard"></i></button>
+          </div>
+          <div class="detail-row">
+            <span>••••••••</span>
+            <button class="btn-icon" onclick="copyText('${acc.pass}')"><i class="bi bi-clipboard-pulse"></i></button>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:10px;">
+            <button class="btn btn-ghost" onclick="editAccount('${cat}',${i})"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-ghost" style="color:#ef4444;" onclick="remove('${cat}',${i})"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+      `;
+      items.appendChild(item);
+    });
+  }
+}
+
+/* =========================
+   EXPORTAR NUEVO CÓDIGO
+========================= */
+async function showNewCode() {
+  const pass = document.getElementById("master-pass").value;
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(pass, salt);
+
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    enc.encode(JSON.stringify(vault))
+  );
+
+  const output = {
+    salt: bufToB64(salt),
+    iv: bufToB64(iv),
+    data: bufToB64(new Uint8Array(encrypted))
+  };
+
+  const out = document.getElementById("code-output");
+  out.innerText = JSON.stringify(output);
+  out.classList.remove("hidden");
+}
 </script>
 </body>
 </html>
