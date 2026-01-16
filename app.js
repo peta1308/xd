@@ -3,24 +3,18 @@
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
-/* ================== ESTADO ================== */
 let currentMasterPass = ""; 
 let vault = { Google: [], GitHub: [], Steam: [], Otros: [] };
 let modalMode = null; 
 let editContext = { service: null, index: null };
 let inactivityTimer;
-
-/** * OFUSCACIÓN DEL SECRETO 2FA
- * El secreto real se extrae dinámicamente para no ser captado por bots simples.
- * Reemplaza 'MISECRETOBRUTAL1' por tu clave de 16 caracteres para Google Authenticator.
- */
 const _p = "key-PerroCarroTontol-auth"; 
 const getS = () => _p.split("-")[1];
 
-/* ================== DATA CIFRADA INICIAL ================== */
+
 const encryptedData = {"salt":"G1xEAp1Qn8a+N1a963k/cw==","iv":"/nvYPMBrozPQ5d0a","data":"gUzqAYZ1dBexfBHe5v63Sqs+iUPJg5QRB4YDA+qePMLWoBf5Vzpq6wO37H84E7zXIf0So+LdFFrDbPerMsiW8gBEE+wD78dL0fAajNkOMkAsGEBGOFfHB6drQIEt698qp1NjxGHM+lwG9VNQOczQK2N3G9d2mdO7KPPMv8ZoNv4f8l6G1XmqW4PEU2I/Zs50Vo1FwfHhkhQzMX0i3H0LBRFkID3ftLexm/A/4kkByYg4FXuXXOwiPeZVVsLI3aK2VJMPaccHM5ccyC9Uo12DhUrgtzpJoXEmGtcfL7A1oyWG8+ZOldBmj+4kJAnzIUs3d7F+tgyjfc2r2TsemKjVQp0rjTPsTL6Dwx/JOZv4bLnxBLJGhYFJoF78HQhWb2LHOM85ctIBiKXDQvQKKv7NzbCJ8D3CI2HdgwxE8bhxW8xj+NWRZMiqHl9TRE5gTKbtnotjzJiplq2yXQYHDg3nnecpyEZPvfBPbguZoh/miwZinwqGEKpLpICqmXgDXtZM/huPt1ncPOaK8JXQBGucuQjZNDSnlk4t4F6TADpKQHW2cFsSN9KZtNKPEPgDjRjYCHh0SvzYXTTBM3c+ZQ7jo8EdBHhdDL6/QLnsTojwZQHG0tRQMnMFzg7vJL5dLdu/a5rb50Zh3GG8wWdAqSyRCA3/RZKXkT771/b5mHRV7vkfdY/KtzJb1rEQqOTDthKcwZwD5IgQSg4wFM9cVK6x4yYAf3cL5vq8zarzV82Q+4T1XUwLaGarxzy3YDIATxB5uRLO4DK/yvrn8sTqy5V9C8eXbp1oCds+XJwZJMBWNE39Yw/u5BcEyy7Bq5w/WrhzNDXa+rDXQtgqVGeI1OheYeScnvXMWGOeo1Z3zaYQusf9w9xbm4RjvvG5nZUhpLziAYXPTN1+7vvrG6SZ+Q2n/8p1xARK+Ew8pSurNKyZyMPdvLl7hvrUWmF5LEbcxjvH8LkICw2+9U5TNAjGmA=="};
 
-/* ================== DOM ================== */
+
 const masterPassInput = document.getElementById("master-pass");
 const otpInput = document.getElementById("otp-code"); 
 const loginScreen = document.getElementById("login-screen");
@@ -33,15 +27,15 @@ const inUser = document.getElementById("in-user");
 const inPass = document.getElementById("in-pass");
 const saveBtn = document.getElementById("save-btn");
 
-/* ================== UTILS ================== */
+
 const b64 = (b) => Uint8Array.from(atob(b), c => c.charCodeAt(0));
 const toB64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
 const escapeHTML = (s) => s.replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
 
-/* ================== SEGURIDAD: 2FA & CRIPTO ================== */
+
 function check2FA(token) {
     try {
-        // Usa la librería otplib cargada globalmente desde el CDN
+        
         return otplib.authenticator.check(token, getS());
     } catch (e) {
         console.error("Error validando 2FA:", e);
@@ -83,7 +77,7 @@ function showExportArea(json) {
     `;
 }
 
-/* ================== SEGURIDAD: INACTIVIDAD ================== */
+
 function resetInactivityTimer() {
     if (currentMasterPass) {
         clearTimeout(inactivityTimer);
@@ -98,7 +92,7 @@ function resetInactivityTimer() {
     document.addEventListener(name, resetInactivityTimer);
 });
 
-/* ================== RENDER ================== */
+
 function render() {
     loginScreen.classList.add("hidden");
     dashboard.classList.remove("hidden");
@@ -163,7 +157,7 @@ function render() {
     }
 }
 
-/* ================== SEGURIDAD: BLOQUEO ================== */
+
 function handleLock() {
     vault = { Google: [], GitHub: [], Steam: [], Otros: [] };
     currentMasterPass = "";
@@ -172,7 +166,7 @@ function handleLock() {
     location.reload();
 }
 
-/* ================== FUNCIONES GLOBALES ================== */
+
 window.openEdit = (service, idx) => {
     modalMode = "edit";
     editContext = { service, index: idx };
@@ -198,7 +192,7 @@ window.deleteService = (service) => {
     }
 };
 
-/* ================== EVENTOS PRINCIPALES ================== */
+
 document.getElementById("unlock-btn").onclick = async () => {
     const pass = masterPassInput.value;
     const otp = otpInput ? otpInput.value : "";
@@ -209,13 +203,13 @@ document.getElementById("unlock-btn").onclick = async () => {
     }
 
     try {
-        // 1. Validar 2FA
+      
         if (!check2FA(otp)) {
             alert("Código 2FA incorrecto o expirado");
             return;
         }
 
-        // 2. Intentar descifrar
+        
         const key = await deriveKey(pass, b64(encryptedData.salt));
         const data = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(encryptedData.iv) }, key, b64(encryptedData.data));
         
@@ -270,3 +264,4 @@ document.addEventListener("click", e => {
 document.getElementById("cancel-btn").onclick = closeModal;
 document.getElementById("lock-btn").onclick = handleLock;
 function closeModal() { modal.style.display = "none"; }
+
